@@ -7,14 +7,20 @@ def initiate_connection(destination, port):
         # Initiate a TCP connection
         client_socket = socket.create_connection((destination, port))
 
+        # Create an SSL context
+        # context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        context = ssl.create_default_context()
+
         # Wrap the socket with SSL/TLS
-        tls_socket = ssl.wrap_socket(client_socket, ssl_version=ssl.PROTOCOL_SSLv23)
+        tls_socket = context.wrap_socket(client_socket, server_hostname=destination)
 
         # Send a simple request
         tls_socket.send(b"GET / HTTP/1.0\r\n\r\n")
 
+        print(tls_socket.version)
+
         # Receive the response
-        response = tls_socket.recv(1024)
+        response = tls_socket.recv(4096)
 
         # Close the connection
         tls_socket.close()
@@ -30,7 +36,7 @@ def is_tls_response(response):
     return b'\x16\x03\x01' in response
 
 def main():
-    destination = "example.com"  # Replace with your target
+    destination = "google.com"  # Replace with your target
     port = 443
 
     response = initiate_connection(destination, port)
